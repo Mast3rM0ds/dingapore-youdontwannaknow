@@ -85,9 +85,7 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-            Flight Tracker
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">Singapore Airlines Flight Tracker</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             View and manage flight information with callsigns displayed in beautiful cards
           </p>
@@ -95,7 +93,6 @@ export default function Home() {
         
         <CardGrid data={data} onDelete={handleDeleteItem} />
       </main>
-
       <AddFlightModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
