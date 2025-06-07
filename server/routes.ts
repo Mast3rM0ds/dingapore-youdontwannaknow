@@ -64,41 +64,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
-  // Get all flights - proxy to external API and merge with local data
+  // Get all flights - use external database
   app.get('/api/flights', async (req, res) => {
     try {
-      // Get flights from external API
-      const externalResponse = await fetch('https://lacy-fine-tax.glitch.me/api');
-      let externalFlights = [];
+      const externalResponse = await fetch('https://lacy-fine-tax.glitch.me/db');
       
       if (externalResponse.ok) {
         const externalData = await externalResponse.json();
-        if (externalData.status === "success" && Array.isArray(externalData.allData)) {
-          externalFlights = externalData.allData;
-        }
+        res.json(externalData);
+      } else {
+        res.status(500).json({ error: 'Failed to load data from external database' });
       }
-
-      // Get flights from local database
-      const localFlights = await db.select().from(flightSubmissions);
-
-      // Combine and format
-      const allFlights = [
-        ...externalFlights.map((flight: any) => ({ ...flight, submittedBy: 'external' })),
-        ...localFlights.map(flight => ({
-          discorduser: flight.discorduser,
-          call: flight.call,
-          plane: flight.plane,
-          dep: flight.dep,
-          ari: flight.ari,
-          submittedBy: flight.submittedBy,
-          id: flight.id
-        }))
-      ];
-
-      res.json({
-        status: "success",
-        allData: allFlights
-      });
     } catch (error) {
       console.error('Error fetching flights:', error);
       res.status(500).json({ error: 'Failed to load data' });
@@ -111,30 +87,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { discorduser, call, plane, dep, ari } = req.body;
       const submittedBy = req.session.userId || 'anonymous';
 
-      // Save to local database with user tracking
-      const flightId = randomUUID();
-      await db.insert(flightSubmissions).values({
-        id: flightId,
+      // Send to external database with user tracking
+      const flightData = {
         discorduser,
         call,
         plane,
         dep,
         ari,
         submittedBy
+      };
+
+      const response = await fetch('https://lacy-fine-tax.glitch.me/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(flightData)
       });
 
-      // Also send to external API
-      try {
-        await fetch('https://lacy-fine-tax.glitch.me/api', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ discorduser, call, plane, dep, ari })
-        });
-      } catch (extError) {
-        console.warn('External API error:', extError);
+      if (response.ok) {
+        const result = await response.json();
+        res.json({ success: true, ...result });
+      } else {
+        res.status(500).json({ error: 'Failed to add flight to external database' });
       }
-
-      res.json({ success: true, id: flightId });
     } catch (error) {
       console.error('Error adding flight:', error);
       res.status(500).json({ error: 'Failed to add flight' });
@@ -152,22 +126,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Not authenticated' });
       }
 
-      // Find the flight
-      const flight = await db.select().from(flightSubmissions).where(eq(flightSubmissions.id, id));
-      
-      if (flight.length === 0) {
-        return res.status(404).json({ error: 'Flight not found' });
+      // Send delete request to external database
+      const response = await fetch(`https://lacy-fine-tax.glitch.me/db/${id}`, {
+        method: 'DELETE',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-User-ID': userId,
+          'X-Is-Admin': isAdmin ? 'true' : 'false'
+        }
+      });
+
+      if (response.ok) {
+        res.json({ success: true });
+      } else if (response.status === 403) {
+        res.status(403).json({ error: 'Can only delete your own flights' });
+      } else if (response.status === 404) {
+        res.status(404).json({ error: 'Flight not found' });
+      } else {
+        res.status(500).json({ error: 'Failed to delete flight' });
       }
-
-      // Check permissions
-      if (!isAdmin && flight[0].submittedBy !== userId) {
-        return res.status(403).json({ error: 'Can only delete your own flights' });
-      }
-
-      // Delete from database
-      await db.delete(flightSubmissions).where(eq(flightSubmissions.id, id));
-
-      res.json({ success: true });
     } catch (error) {
       console.error('Error deleting flight:', error);
       res.status(500).json({ error: 'Failed to delete flight' });
@@ -177,8 +154,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin-only: Get all flights with submission details
   app.get('/api/admin/flights', requireAdmin, async (req, res) => {
     try {
-      const flights = await db.select().from(flightSubmissions);
-      res.json(flights);
+      const response = await fetch('https://lacy-fine-tax.glitch.me/db', {
+        headers: { 'X-Admin-Request': 'true' }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        res.json(data);
+      } else {
+        res.status(500).json({ error: 'Failed to load admin data' });
+      }
     } catch (error) {
       console.error('Error fetching admin flights:', error);
       res.status(500).json({ error: 'Failed to load admin data' });
