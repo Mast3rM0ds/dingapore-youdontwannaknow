@@ -16,7 +16,7 @@ interface FlightData {
 interface CardGridProps {
   data: FlightData[];
   onDelete?: (id: string) => void;
-  currentUser?: string;
+  currentUser?: string | null;
   isAdmin?: boolean;
 }
 

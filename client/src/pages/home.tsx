@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import CardGrid from "@/components/card-grid";
 import Header from "@/components/header";
 import AddFlightModal from "@/components/add-flight-modal";
+import AuthModal from "@/components/auth-modal";
+import { Button } from "@/components/ui/button";
+import { Shield, User, LogOut } from "lucide-react";
 
 interface FlightData {
   discorduser: string;
@@ -23,6 +26,9 @@ export default function Home() {
   const [data, setData] = useState<FlightData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const loadData = async () => {
     try {
@@ -44,8 +50,22 @@ export default function Home() {
     }
   };
 
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/session');
+      if (response.ok) {
+        const { isAdmin, userId } = await response.json();
+        setIsAdmin(isAdmin);
+        setCurrentUser(userId);
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+    }
+  };
+
   useEffect(() => {
     loadData();
+    checkAuthStatus();
   }, []);
 
   const handleAddItem = (newItem: FlightData) => {
@@ -70,6 +90,21 @@ export default function Home() {
     }
   };
 
+  const handleAuth = (user: { isAdmin: boolean; userId: string }) => {
+    setIsAdmin(user.isAdmin);
+    setCurrentUser(user.userId);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setIsAdmin(false);
+      setCurrentUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -84,6 +119,47 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header onAddItem={() => setShowAddModal(true)} />
+      
+      {/* Auth Controls */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            {currentUser ? (
+              <>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  {isAdmin ? <Shield className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                  <span>
+                    {isAdmin ? 'Admin' : 'User'}: {currentUser}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                Login
+              </Button>
+            )}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {data.length} flights tracked
+          </div>
+        </div>
+      </div>
+      
       <main className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -97,12 +173,24 @@ export default function Home() {
           </p>
         </motion.div>
         
-        <CardGrid data={data} onDelete={handleDeleteItem} />
+        <CardGrid 
+          data={data} 
+          onDelete={handleDeleteItem}
+          currentUser={currentUser || undefined}
+          isAdmin={isAdmin}
+        />
       </main>
+      
       <AddFlightModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddItem}
+      />
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuth={handleAuth}
       />
     </div>
   );
