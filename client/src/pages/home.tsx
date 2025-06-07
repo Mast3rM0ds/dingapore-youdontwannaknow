@@ -176,7 +176,7 @@ export default function Home() {
         <CardGrid 
           data={data} 
           onDelete={handleDeleteItem}
-          currentUser={currentUser || undefined}
+          currentUser={currentUser}
           isAdmin={isAdmin}
         />
       </main>
