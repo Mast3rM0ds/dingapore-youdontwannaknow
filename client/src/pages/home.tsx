@@ -20,11 +20,15 @@ export default function Home() {
   const loadData = async () => {
     try {
       const response = await fetch('/api/items');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const jsonData = await response.json();
-      setData(jsonData);
+      setData(Array.isArray(jsonData) ? jsonData : []);
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
+      setData([]);
       setLoading(false);
     }
   };

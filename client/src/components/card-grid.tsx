@@ -62,7 +62,7 @@ export default function CardGrid({ data, onDelete }: CardGridProps) {
       initial="hidden"
       animate="visible"
     >
-      {data.map((item) => (
+      {Array.isArray(data) && data.map((item) => (
         <motion.div
           key={item.id}
           className="group cursor-pointer"
