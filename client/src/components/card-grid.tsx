@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CardData {
   id: number;
@@ -10,6 +12,7 @@ interface CardData {
 
 interface CardGridProps {
   data: CardData[];
+  onDelete?: (id: number) => void;
 }
 
 const colorVariants = {
@@ -27,7 +30,7 @@ const colorVariants = {
   violet: "bg-gradient-to-br from-violet-500 to-violet-600",
 };
 
-export default function CardGrid({ data }: CardGridProps) {
+export default function CardGrid({ data, onDelete }: CardGridProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

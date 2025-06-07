@@ -3,8 +3,12 @@ import { motion } from "framer-motion";
 import { Moon, Sun, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function Header() {
-  const [isDark, setIsDark] = useState(true);
+interface HeaderProps {
+  onAddItem: () => void;
+}
+
+export default function Header({ onAddItem }: HeaderProps) {
+  const [isDark, setIsDark] = useState(false);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -34,10 +38,11 @@ export default function Header() {
             <Button
               variant="outline"
               size="sm"
-              className="hidden sm:flex items-center space-x-2"
+              onClick={onAddItem}
+              className="flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Item</span>
+              <span className="hidden sm:inline">Add Item</span>
             </Button>
             
             <Button

@@ -2,24 +2,54 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import CardGrid from "@/components/card-grid";
 import Header from "@/components/header";
+import AddItemModal from "@/components/add-item-modal";
+
+interface CardData {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  color: string;
+}
 
 export default function Home() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const response = await fetch('/api/items');
+      const jsonData = await response.json();
+      setData(jsonData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Load JSON data
-    fetch('/shared/data.json')
-      .then(response => response.json())
-      .then(jsonData => {
-        setData(jsonData);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error loading data:', error);
-        setLoading(false);
-      });
+    loadData();
   }, []);
+
+  const handleAddItem = (newItem: CardData) => {
+    setData(prevData => [...prevData, newItem]);
+  };
+
+  const handleDeleteItem = async (id: number) => {
+    try {
+      const response = await fetch(`/api/items/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setData(prevData => prevData.filter(item => item.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -34,7 +64,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
+      <Header onAddItem={() => setShowAddModal(true)} />
       <main className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -50,8 +80,14 @@ export default function Home() {
           </p>
         </motion.div>
         
-        <CardGrid data={data} />
+        <CardGrid data={data} onDelete={handleDeleteItem} />
       </main>
+
+      <AddItemModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddItem}
+      />
     </div>
   );
 }
