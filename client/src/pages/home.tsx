@@ -2,29 +2,38 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import CardGrid from "@/components/card-grid";
 import Header from "@/components/header";
-import AddItemModal from "@/components/add-item-modal";
+import AddFlightModal from "@/components/add-flight-modal";
 
-interface CardData {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  color: string;
+interface FlightData {
+  discorduser: string;
+  call: string;
+  plane: string;
+  dep: string;
+  ari: string;
+}
+
+interface ApiResponse {
+  status: string;
+  allData: FlightData[];
 }
 
 export default function Home() {
-  const [data, setData] = useState<CardData[]>([]);
+  const [data, setData] = useState<FlightData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const loadData = async () => {
     try {
-      const response = await fetch('/api/items');
+      const response = await fetch('/api/flights');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const jsonData = await response.json();
-      setData(Array.isArray(jsonData) ? jsonData : []);
+      const apiResponse: ApiResponse = await response.json();
+      if (apiResponse.status === "success" && Array.isArray(apiResponse.allData)) {
+        setData(apiResponse.allData);
+      } else {
+        setData([]);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -37,21 +46,21 @@ export default function Home() {
     loadData();
   }, []);
 
-  const handleAddItem = (newItem: CardData) => {
+  const handleAddItem = (newItem: FlightData) => {
     setData(prevData => [...prevData, newItem]);
   };
 
-  const handleDeleteItem = async (id: number) => {
+  const handleDeleteItem = async (callsign: string) => {
     try {
-      const response = await fetch(`/api/items/${id}`, {
+      const response = await fetch(`/api/flights/${callsign}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        setData(prevData => prevData.filter(item => item.id !== id));
+        setData(prevData => prevData.filter(flight => flight.call !== callsign));
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      console.error('Error deleting flight:', error);
     }
   };
 
@@ -77,17 +86,17 @@ export default function Home() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-            Dynamic Card Grid
+            Flight Tracker
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Explore our collection of services and features displayed in beautiful rounded squares
+            View and manage flight information with callsigns displayed in beautiful cards
           </p>
         </motion.div>
         
         <CardGrid data={data} onDelete={handleDeleteItem} />
       </main>
 
-      <AddItemModal
+      <AddFlightModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddItem}

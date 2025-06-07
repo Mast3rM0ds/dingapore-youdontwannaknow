@@ -30,7 +30,7 @@ export default function Header({ onAddItem }: HeaderProps) {
           >
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"></div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              CardGrid
+              FlightTracker
             </h1>
           </motion.div>
 
@@ -42,7 +42,7 @@ export default function Header({ onAddItem }: HeaderProps) {
               className="flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Add Item</span>
+              <span className="hidden sm:inline">Add Flight</span>
             </Button>
             
             <Button

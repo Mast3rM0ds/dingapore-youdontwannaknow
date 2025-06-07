@@ -5,46 +5,67 @@ import fs from "fs";
 import path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const dataFile = path.join(process.cwd(), 'shared', 'data.json');
+  const flightDataFile = path.join(process.cwd(), 'shared', 'flight-data.json');
 
-  // Get all items
-  app.get('/api/items', (req, res) => {
+  // Get all flights - returns your API format
+  app.get('/api/flights', (req, res) => {
     try {
-      const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+      if (!fs.existsSync(flightDataFile)) {
+        // Create initial flight data if file doesn't exist
+        const initialData = {
+          status: "success",
+          allData: [
+            {
+              discorduser: "voidartaron.java",
+              call: "AAL123",
+              plane: "Boeing 737",
+              dep: "JFK",
+              ari: "LAX"
+            },
+            {
+              discorduser: "pilot_mike",
+              call: "UAL456",
+              plane: "Airbus A320",
+              dep: "ORD",
+              ari: "DEN"
+            }
+          ]
+        };
+        fs.writeFileSync(flightDataFile, JSON.stringify(initialData, null, 2));
+      }
+      
+      const data = JSON.parse(fs.readFileSync(flightDataFile, 'utf8'));
       res.json(data);
     } catch (error) {
-      console.error('Error reading data file:', error);
+      console.error('Error reading flight data file:', error);
       res.status(500).json({ error: 'Failed to load data' });
     }
   });
 
-  // Add new item
-  app.post('/api/items', (req, res) => {
+  // Add new flight
+  app.post('/api/flights', (req, res) => {
     try {
-      const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-      const newItem = {
-        id: Math.max(...data.map((item: any) => item.id), 0) + 1,
-        ...req.body
-      };
-      data.push(newItem);
-      fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-      res.json(newItem);
+      const data = JSON.parse(fs.readFileSync(flightDataFile, 'utf8'));
+      const newFlight = req.body;
+      data.allData.push(newFlight);
+      fs.writeFileSync(flightDataFile, JSON.stringify(data, null, 2));
+      res.json(newFlight);
     } catch (error) {
-      console.error('Error adding item:', error);
-      res.status(500).json({ error: 'Failed to add item' });
+      console.error('Error adding flight:', error);
+      res.status(500).json({ error: 'Failed to add flight' });
     }
   });
 
-  // Delete item
-  app.delete('/api/items/:id', (req, res) => {
+  // Delete flight by callsign
+  app.delete('/api/flights/:callsign', (req, res) => {
     try {
-      const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
-      const filteredData = data.filter((item: any) => item.id !== parseInt(req.params.id));
-      fs.writeFileSync(dataFile, JSON.stringify(filteredData, null, 2));
+      const data = JSON.parse(fs.readFileSync(flightDataFile, 'utf8'));
+      data.allData = data.allData.filter((flight: any) => flight.call !== req.params.callsign);
+      fs.writeFileSync(flightDataFile, JSON.stringify(data, null, 2));
       res.json({ success: true });
     } catch (error) {
-      console.error('Error deleting item:', error);
-      res.status(500).json({ error: 'Failed to delete item' });
+      console.error('Error deleting flight:', error);
+      res.status(500).json({ error: 'Failed to delete flight' });
     }
   });
 

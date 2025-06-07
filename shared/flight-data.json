@@ -1,0 +1,19 @@
+{
+  "status": "success",
+  "allData": [
+    {
+      "discorduser": "voidartaron.java",
+      "call": "AAL123",
+      "plane": "Boeing 737",
+      "dep": "JFK",
+      "ari": "LAX"
+    },
+    {
+      "discorduser": "pilot_mike",
+      "call": "UAL456",
+      "plane": "Airbus A320",
+      "dep": "ORD",
+      "ari": "DEN"
+    }
+  ]
+}
