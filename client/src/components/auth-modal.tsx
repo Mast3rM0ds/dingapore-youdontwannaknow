@@ -148,9 +148,7 @@ export default function AuthModal({ isOpen, onClose, onAuth }: AuthModalProps) {
                       className="mt-1"
                       required
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Default password: admin123
-                    </p>
+                    <p className="text-xs text-gray-500 mt-1">i swear if u dare try i will hunt you down and kill you.</p>
                   </div>
                   <Button
                     type="submit"

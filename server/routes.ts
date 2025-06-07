@@ -36,7 +36,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin login
   app.post('/api/auth/admin', (req: any, res) => {
     const { password } = req.body;
-    const adminPassword = 'admin123'; // You can change this
+    const adminPassword = 'bigfatfemboys'; // You can change this
     
     if (password === adminPassword) {
       req.session.isAdmin = true;
