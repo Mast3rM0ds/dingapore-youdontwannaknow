@@ -9,11 +9,15 @@ interface FlightData {
   plane: string;
   dep: string;
   ari: string;
+  submittedBy?: string;
+  id?: string;
 }
 
 interface CardGridProps {
   data: FlightData[];
-  onDelete?: (callsign: string) => void;
+  onDelete?: (id: string) => void;
+  currentUser?: string;
+  isAdmin?: boolean;
 }
 
 const getFlightColor = (callsign: string) => {
@@ -36,7 +40,7 @@ const getFlightColor = (callsign: string) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
-export default function CardGrid({ data, onDelete }: CardGridProps) {
+export default function CardGrid({ data, onDelete, currentUser, isAdmin }: CardGridProps) {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -93,14 +97,14 @@ export default function CardGrid({ data, onDelete }: CardGridProps) {
                     {flight.plane}
                   </span>
                 </div>
-                {onDelete && (
+                {onDelete && flight.id && (isAdmin || flight.submittedBy === currentUser) && (
                   <div className="absolute top-3 left-3">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDelete(flight.call);
+                        onDelete(flight.id!);
                       }}
                       className="p-1 h-6 w-6 text-white/70 hover:text-white hover:bg-white/20 rounded-full"
                     >

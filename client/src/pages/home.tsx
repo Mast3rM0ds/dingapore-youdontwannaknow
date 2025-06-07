@@ -10,6 +10,8 @@ interface FlightData {
   plane: string;
   dep: string;
   ari: string;
+  submittedBy?: string;
+  id?: string;
 }
 
 interface ApiResponse {
@@ -24,7 +26,7 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const response = await fetch('https://lacy-fine-tax.glitch.me/api');
+      const response = await fetch('/api/flights');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -50,10 +52,19 @@ export default function Home() {
     setData(prevData => [...prevData, newItem]);
   };
 
-  const handleDeleteItem = async (callsign: string) => {
+  const handleDeleteItem = async (id: string) => {
     try {
-      // For now, just remove from local state since your API doesn't support DELETE
-      setData(prevData => prevData.filter(flight => flight.call !== callsign));
+      const response = await fetch(`/api/flights/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setData(prevData => prevData.filter(flight => flight.id !== id));
+      } else {
+        const error = await response.json();
+        console.error('Delete error:', error.error);
+        alert(error.error || 'Failed to delete flight');
+      }
     } catch (error) {
       console.error('Error deleting flight:', error);
     }
