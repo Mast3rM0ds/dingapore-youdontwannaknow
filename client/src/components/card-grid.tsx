@@ -81,6 +81,21 @@ export default function CardGrid({ data, onDelete }: CardGridProps) {
                   {item.category}
                 </span>
               </div>
+              {onDelete && (
+                <div className="absolute top-3 left-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(item.id);
+                    }}
+                    className="p-1 h-6 w-6 text-white/70 hover:text-white hover:bg-white/20 rounded-full"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
             </div>
             
             {/* Content */}
