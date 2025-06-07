@@ -24,7 +24,7 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      const response = await fetch('/api/flights');
+      const response = await fetch('https://lacy-fine-tax.glitch.me/api');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -52,13 +52,8 @@ export default function Home() {
 
   const handleDeleteItem = async (callsign: string) => {
     try {
-      const response = await fetch(`/api/flights/${callsign}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setData(prevData => prevData.filter(flight => flight.call !== callsign));
-      }
+      // For now, just remove from local state since your API doesn't support DELETE
+      setData(prevData => prevData.filter(flight => flight.call !== callsign));
     } catch (error) {
       console.error('Error deleting flight:', error);
     }

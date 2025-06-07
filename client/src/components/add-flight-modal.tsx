@@ -36,7 +36,7 @@ export default function AddFlightModal({ isOpen, onClose, onAdd }: AddFlightModa
     }
 
     try {
-      const response = await fetch('/api/flights', {
+      const response = await fetch('https://lacy-fine-tax.glitch.me/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,8 +45,7 @@ export default function AddFlightModal({ isOpen, onClose, onAdd }: AddFlightModa
       });
 
       if (response.ok) {
-        const newFlight = await response.json();
-        onAdd(newFlight);
+        onAdd(formData);
         setFormData({ discorduser: "", call: "", plane: "", dep: "", ari: "" });
         onClose();
       }
