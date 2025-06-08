@@ -34,4 +34,9 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
+  export default {
+    build: {
+      outDir: 'dist',
+    },
+  };
 });
