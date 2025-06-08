@@ -28,9 +28,8 @@ export default defineConfig({
     outDir: 'dist', // Make sure this is correct for Netlify
   },
   server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
+    proxy: {
+      '/api': 'http://localhost:3000', // Example for API proxy if needed
     },
   },
 });
